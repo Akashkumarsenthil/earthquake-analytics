@@ -56,11 +56,11 @@ st.markdown(f"""
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     
-    /* Main Header */
+    /* Main Header - White for dark theme */
     .main-header {{
         font-size: 2.2rem;
         font-weight: 700;
-        color: {COLORS['dark']};
+        color: #FFFFFF !important;
         text-align: center;
         padding: 1.5rem 0;
         margin-bottom: 1rem;
@@ -69,17 +69,17 @@ st.markdown(f"""
     
     .sub-header {{
         font-size: 1rem;
-        color: {COLORS['muted']};
+        color: #B0B0B0 !important;
         text-align: center;
         margin-top: -1rem;
         margin-bottom: 2rem;
     }}
     
-    /* Section Headers */
+    /* Section Headers - Bright for dark theme */
     .section-header {{
         font-size: 1.3rem;
         font-weight: 600;
-        color: {COLORS['dark']};
+        color: #FFFFFF !important;
         margin: 1.5rem 0 1rem 0;
         padding-bottom: 0.5rem;
         border-bottom: 2px solid {COLORS['secondary']};
@@ -143,9 +143,9 @@ st.markdown(f"""
         background: linear-gradient(135deg, #1E2A3A 0%, #2C3E50 100%);
     }}
     
-    /* Info Box */
+    /* Info Box - Dark theme compatible */
     .info-box {{
-        background: #E8F4FD;
+        background: rgba(0, 102, 204, 0.2);
         border-left: 4px solid {COLORS['primary']};
         padding: 1rem 1.5rem;
         border-radius: 0 8px 8px 0;
@@ -154,19 +154,19 @@ st.markdown(f"""
     
     .info-box-title {{
         font-weight: 600;
-        color: {COLORS['dark']};
+        color: #FFFFFF !important;
         margin-bottom: 0.5rem;
     }}
     
     .info-box-text {{
-        color: {COLORS['text']};
+        color: #E0E0E0 !important;
         font-size: 0.9rem;
     }}
     
-    /* Tabs Styling */
+    /* Tabs Styling - Dark theme */
     .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
-        background-color: #F8F9FA;
+        background-color: rgba(255,255,255,0.1);
         padding: 0.5rem;
         border-radius: 10px;
     }}
@@ -177,7 +177,7 @@ st.markdown(f"""
         background-color: transparent;
         border-radius: 8px;
         font-weight: 500;
-        color: {COLORS['text']};
+        color: #FFFFFF !important;
     }}
     
     .stTabs [aria-selected="true"] {{
@@ -245,13 +245,14 @@ CHART_LAYOUT = {
 
 @st.cache_resource
 def get_connection():
+    sf = st.secrets["snowflake"]
     return snowflake.connector.connect(
-        account=os.getenv('SNOWFLAKE_ACCOUNT', 'sfedu02-lvb17920'),
-        user=os.getenv('SNOWFLAKE_USER', 'PLATYPUS'),
-        password=os.getenv('SNOWFLAKE_PASSWORD'),
-        warehouse=os.getenv('SNOWFLAKE_WAREHOUSE', 'PLATYPUS_QUERY_WH'),
-        database=os.getenv('SNOWFLAKE_DATABASE', 'USER_DB_PLATYPUS'),
-        schema=os.getenv('SNOWFLAKE_SCHEMA', 'ANALYTICS')
+        user=sf["user"],
+        password=sf["password"],
+        account=sf["account"],
+        warehouse=sf["warehouse"],
+        database=sf["database"],
+        schema=sf["schema"],
     )
 
 
@@ -399,18 +400,18 @@ def create_yearly_chart(df):
     )
     
     fig.update_layout(
-        title={'text': 'Annual Earthquake Activity', 'font': {'size': 16, 'color': '#2C3E50'}},
+        title={'text': 'Annual Earthquake Activity', 'font': {'size': 16, 'color': 'black'}},
         height=420,
         hovermode='x unified',
-        legend=dict(orientation='h', yanchor='bottom', y=1.02),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, font={'color': 'black'}),
         margin=dict(t=80, b=40),
         paper_bgcolor='white',
         plot_bgcolor='#F8F9FA',
-        font={'family': 'Inter, sans-serif', 'color': '#2C3E50'}
+        font={'family': 'Inter, sans-serif', 'color': 'black'}
     )
-    fig.update_xaxes(title='Year', gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6')
-    fig.update_yaxes(title='Count', secondary_y=False, gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6')
-    fig.update_yaxes(title='Magnitude', secondary_y=True, gridcolor='rgba(0,0,0,0.1)')
+    fig.update_xaxes(title='Year', gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6', tickfont={'color': 'black'}, title_font={'color': 'black'})
+    fig.update_yaxes(title='Count', secondary_y=False, gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6', tickfont={'color': 'black'}, title_font={'color': 'black'})
+    fig.update_yaxes(title='Magnitude', secondary_y=True, gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
     
     return fig
 
@@ -432,17 +433,17 @@ def create_major_trend(df):
     ))
     
     fig.update_layout(
-        title={'text': 'Significant Earthquakes Trend', 'font': {'size': 16, 'color': '#2C3E50'}},
+        title={'text': 'Significant Earthquakes Trend', 'font': {'size': 16, 'color': 'black'}},
         height=380,
         hovermode='x unified',
-        legend=dict(orientation='h', yanchor='bottom', y=1.02),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, font={'color': 'black'}),
         margin=dict(t=80, b=40),
         paper_bgcolor='white',
         plot_bgcolor='#F8F9FA',
-        font={'family': 'Inter, sans-serif', 'color': '#2C3E50'}
+        font={'family': 'Inter, sans-serif', 'color': 'black'}
     )
-    fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6')
-    fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6')
+    fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6', tickfont={'color': 'black'})
+    fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', linecolor='#dee2e6', tickfont={'color': 'black'})
     
     return fig
 
@@ -462,14 +463,18 @@ def create_heatmap(df):
     fig.update_xaxes(
         tickvals=list(range(1, 13)),
         ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        tickfont={'color': 'black'},
+        title_font={'color': 'black'}
     )
+    fig.update_yaxes(tickfont={'color': 'black'}, title_font={'color': 'black'})
     fig.update_layout(
         height=380,
         margin=dict(t=60, b=40),
         paper_bgcolor='white',
-        font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-        title={'font': {'size': 16, 'color': '#2C3E50'}}
+        font={'family': 'Inter, sans-serif', 'color': 'black'},
+        title={'font': {'size': 16, 'color': 'black'}},
+        coloraxis_colorbar={'tickfont': {'color': 'black'}, 'title': {'font': {'color': 'black'}}}
     )
     return fig
 
@@ -493,7 +498,11 @@ def create_map(df):
     fig.update_layout(
         height=480,
         margin=dict(l=0, r=0, t=0, b=0),
-        coloraxis_colorbar=dict(title='Magnitude')
+        coloraxis_colorbar=dict(
+            title='Magnitude',
+            tickfont={'color': 'black'},
+            title_font={'color': 'black'}
+        )
     )
     return fig
 
@@ -514,12 +523,13 @@ def create_region_chart(df):
         showlegend=False,
         paper_bgcolor='white',
         plot_bgcolor='#F8F9FA',
-        font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-        title={'font': {'size': 16, 'color': '#2C3E50'}}
+        font={'family': 'Inter, sans-serif', 'color': 'black'},
+        title={'font': {'size': 16, 'color': 'black'}},
+        coloraxis_colorbar={'tickfont': {'color': 'black'}, 'title': {'font': {'color': 'black'}}}
     )
-    fig.update_traces(textposition='outside', textfont_size=10)
-    fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)')
-    fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+    fig.update_traces(textposition='outside', textfont_size=10, textfont_color='black')
+    fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
+    fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
     return fig
 
 
@@ -539,11 +549,12 @@ def create_risk_chart(df):
         margin=dict(t=60, b=40, l=10),
         paper_bgcolor='white',
         plot_bgcolor='#F8F9FA',
-        font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-        title={'font': {'size': 16, 'color': '#2C3E50'}}
+        font={'family': 'Inter, sans-serif', 'color': 'black'},
+        title={'font': {'size': 16, 'color': 'black'}},
+        legend={'font': {'color': 'black'}}
     )
-    fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)')
-    fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+    fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
+    fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
     return fig
 
 
@@ -565,10 +576,11 @@ def create_magnitude_pie(df):
         height=380,
         margin=dict(t=60, b=40),
         paper_bgcolor='white',
-        font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-        title={'font': {'size': 16, 'color': '#2C3E50'}}
+        font={'family': 'Inter, sans-serif', 'color': 'black'},
+        title={'font': {'size': 16, 'color': 'black'}},
+        legend={'font': {'color': 'black'}}
     )
-    fig.update_traces(textposition='outside', textinfo='percent+label')
+    fig.update_traces(textposition='outside', textinfo='percent+label', textfont_color='black')
     return fig
 
 
@@ -718,12 +730,12 @@ def render_historical():
                 showlegend=False,
                 paper_bgcolor='white',
                 plot_bgcolor='#F8F9FA',
-                font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-                title={'font': {'size': 16, 'color': '#2C3E50'}}
+                font={'family': 'Inter, sans-serif', 'color': 'black'},
+                title={'font': {'size': 16, 'color': 'black'}}
             )
-            fig.update_traces(texttemplate='%{text:.0f}', textposition='outside')
-            fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)')
-            fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+            fig.update_traces(texttemplate='%{text:.0f}', textposition='outside', textfont_color='black')
+            fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
+            fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
             st.plotly_chart(fig, use_container_width=True)
 
 
@@ -810,7 +822,11 @@ def render_explorer():
                     mapbox_style='carto-positron',
                     hover_name='place'
                 )
-                fig.update_layout(height=400, margin=dict(l=0, r=0, t=0, b=0))
+                fig.update_layout(
+                    height=400,
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    coloraxis_colorbar={'tickfont': {'color': 'black'}, 'title': {'font': {'color': 'black'}}}
+                )
                 st.plotly_chart(fig, use_container_width=True)
         
         with col2:
@@ -820,11 +836,11 @@ def render_explorer():
                 height=400,
                 paper_bgcolor='white',
                 plot_bgcolor='#F8F9FA',
-                font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-                title={'font': {'size': 16, 'color': '#2C3E50'}}
+                font={'family': 'Inter, sans-serif', 'color': 'black'},
+                title={'font': {'size': 16, 'color': 'black'}}
             )
-            fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)')
-            fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+            fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
+            fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
             st.plotly_chart(fig, use_container_width=True)
         
         st.markdown("---")
@@ -907,14 +923,15 @@ def render_region():
             fig.add_trace(go.Bar(x=yearly['year'], y=yearly['count'], name='Count', marker_color=COLORS['primary']), secondary_y=False)
             fig.add_trace(go.Scatter(x=yearly['year'], y=yearly['avg'], name='Avg Mag', line=dict(color=COLORS['accent'], width=3)), secondary_y=True)
             fig.update_layout(
-                title={'text': f'Annual Activity: {region}', 'font': {'size': 16, 'color': '#2C3E50'}},
+                title={'text': f'Annual Activity: {region}', 'font': {'size': 16, 'color': 'black'}},
                 height=380,
                 paper_bgcolor='white',
                 plot_bgcolor='#F8F9FA',
-                font={'family': 'Inter, sans-serif', 'color': '#2C3E50'}
+                font={'family': 'Inter, sans-serif', 'color': 'black'},
+                legend={'font': {'color': 'black'}}
             )
-            fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)')
-            fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+            fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
+            fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
             st.plotly_chart(fig, use_container_width=True)
             
             col1, col2 = st.columns(2)
@@ -929,7 +946,11 @@ def render_region():
                         color_continuous_scale='YlOrRd',
                         zoom=3, mapbox_style='carto-positron'
                     )
-                    fig.update_layout(height=350, margin=dict(l=0, r=0, t=0, b=0))
+                    fig.update_layout(
+                        height=350,
+                        margin=dict(l=0, r=0, t=0, b=0),
+                        coloraxis_colorbar={'tickfont': {'color': 'black'}, 'title': {'font': {'color': 'black'}}}
+                    )
                     st.plotly_chart(fig, use_container_width=True)
             
             with col2:
@@ -939,11 +960,11 @@ def render_region():
                     height=350,
                     paper_bgcolor='white',
                     plot_bgcolor='#F8F9FA',
-                    font={'family': 'Inter, sans-serif', 'color': '#2C3E50'},
-                    title={'font': {'size': 16, 'color': '#2C3E50'}}
+                    font={'family': 'Inter, sans-serif', 'color': 'black'},
+                    title={'font': {'size': 16, 'color': 'black'}}
                 )
-                fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)')
-                fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)')
+                fig.update_xaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
+                fig.update_yaxes(gridcolor='rgba(0,0,0,0.1)', tickfont={'color': 'black'}, title_font={'color': 'black'})
                 st.plotly_chart(fig, use_container_width=True)
             
             st.markdown("---")
