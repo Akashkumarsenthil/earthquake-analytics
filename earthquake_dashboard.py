@@ -163,12 +163,13 @@ st.markdown(f"""
         font-size: 0.9rem;
     }}
     
-    /* Tabs Styling - Dark theme */
+    /* Tabs Styling - Dark theme, centered */
     .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
         background-color: rgba(255,255,255,0.1);
         padding: 0.5rem;
         border-radius: 10px;
+        justify-content: center;
     }}
     
     .stTabs [data-baseweb="tab"] {{
