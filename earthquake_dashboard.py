@@ -1060,6 +1060,361 @@ def trigger_dag(dag_id, start=None, end=None, mag=None, chunk=None):
 
 
 # =============================================================================
+# TAB 6: ML INSIGHTS
+# =============================================================================
+
+@st.cache_data(ttl=300)
+def load_ml_predictions():
+    query = """
+    SELECT * FROM ANALYTICS.ML_MAGNITUDE_PREDICTIONS
+    ORDER BY predicted_at DESC LIMIT 1000
+    """
+    try:
+        return run_query(query)
+    except:
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def load_ml_anomalies():
+    query = """
+    SELECT * FROM ANALYTICS.ML_EARTHQUAKE_ANOMALIES
+    WHERE is_anomaly = TRUE
+    ORDER BY detected_at DESC LIMIT 500
+    """
+    try:
+        return run_query(query)
+    except:
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def load_ml_clusters():
+    query = """
+    SELECT * FROM ANALYTICS.ML_REGIONAL_RISK_CLUSTERS
+    ORDER BY risk_level, earthquake_count DESC
+    """
+    try:
+        return run_query(query)
+    except:
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def load_ml_forecast():
+    query = """
+    SELECT * FROM ANALYTICS.ML_SEISMIC_FORECAST
+    ORDER BY region, forecast_month
+    """
+    try:
+        return run_query(query)
+    except:
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def load_ml_metrics():
+    query = """
+    SELECT * FROM ANALYTICS.ML_MODEL_METRICS
+    ORDER BY model_name, recorded_at DESC
+    """
+    try:
+        return run_query(query)
+    except:
+        return pd.DataFrame()
+
+
+def render_ml_insights():
+    st.markdown("""
+    <div class="info-box">
+        <p class="info-box-title">🤖 Machine Learning Insights</p>
+        <p class="info-box-text">AI-powered earthquake analysis: magnitude prediction, anomaly detection, risk clustering, and activity forecasting.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Load ML data
+    df_predictions = load_ml_predictions()
+    df_anomalies = load_ml_anomalies()
+    df_clusters = load_ml_clusters()
+    df_forecast = load_ml_forecast()
+    df_metrics = load_ml_metrics()
+    
+    # Check if ML data exists
+    has_data = len(df_predictions) > 0 or len(df_anomalies) > 0 or len(df_clusters) > 0
+    
+    if not has_data:
+        st.warning("⚠️ No ML data available yet. Run the `earthquake_ml_pipeline` DAG in Airflow to generate ML insights.")
+        st.info("Go to [Airflow](http://localhost:8081) → DAGs → `earthquake_ml_pipeline` → Trigger")
+        return
+    
+    # Model Performance Metrics
+    if len(df_metrics) > 0:
+        st.markdown('<p class="section-header">📊 Model Performance</p>', unsafe_allow_html=True)
+        
+        cols = st.columns(4)
+        
+        # MAE for magnitude prediction
+        mae_row = df_metrics[(df_metrics['model_name'] == 'magnitude_prediction') & (df_metrics['metric_name'] == 'mae')]
+        if len(mae_row) > 0:
+            with cols[0]:
+                st.markdown(render_kpi(f"{mae_row['metric_value'].iloc[0]:.3f}", "Prediction MAE", "primary"), unsafe_allow_html=True)
+        
+        # R2 Score
+        r2_row = df_metrics[(df_metrics['model_name'] == 'magnitude_prediction') & (df_metrics['metric_name'] == 'r2_score')]
+        if len(r2_row) > 0:
+            with cols[1]:
+                st.markdown(render_kpi(f"{r2_row['metric_value'].iloc[0]:.3f}", "R² Score", "info"), unsafe_allow_html=True)
+        
+        # Anomaly rate
+        anom_row = df_metrics[(df_metrics['model_name'] == 'anomaly_detection') & (df_metrics['metric_name'] == 'anomaly_rate')]
+        if len(anom_row) > 0:
+            with cols[2]:
+                st.markdown(render_kpi(f"{anom_row['metric_value'].iloc[0]*100:.1f}%", "Anomaly Rate", "warning"), unsafe_allow_html=True)
+        
+        # Silhouette score
+        sil_row = df_metrics[(df_metrics['model_name'] == 'regional_clustering') & (df_metrics['metric_name'] == 'silhouette_score')]
+        if len(sil_row) > 0:
+            with cols[3]:
+                st.markdown(render_kpi(f"{sil_row['metric_value'].iloc[0]:.3f}", "Cluster Score", "success"), unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Two columns for main visualizations
+    col1, col2 = st.columns(2)
+    
+    # 1. Magnitude Prediction Results
+    with col1:
+        st.markdown('<p class="section-header">🎯 Magnitude Prediction</p>', unsafe_allow_html=True)
+        
+        if len(df_predictions) > 0:
+            # Scatter plot: Actual vs Predicted
+            fig = px.scatter(
+                df_predictions, 
+                x='actual_magnitude', 
+                y='predicted_magnitude',
+                color='prediction_error',
+                color_continuous_scale='RdYlGn_r',
+                title='Actual vs Predicted Magnitude',
+                labels={'actual_magnitude': 'Actual', 'predicted_magnitude': 'Predicted'}
+            )
+            # Add perfect prediction line
+            fig.add_shape(type='line', x0=0, y0=0, x1=10, y1=10, 
+                         line=dict(color='gray', dash='dash'))
+            fig.update_layout(
+                height=400,
+                paper_bgcolor='white',
+                plot_bgcolor='#F8F9FA',
+                font={'color': 'black'},
+                title={'font': {'color': 'black'}}
+            )
+            fig.update_xaxes(tickfont={'color': 'black'}, title_font={'color': 'black'})
+            fig.update_yaxes(tickfont={'color': 'black'}, title_font={'color': 'black'})
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Error distribution
+            fig_err = px.histogram(
+                df_predictions, x='prediction_error', nbins=30,
+                title='Prediction Error Distribution',
+                color_discrete_sequence=[COLORS['primary']]
+            )
+            fig_err.update_layout(
+                height=300,
+                paper_bgcolor='white',
+                plot_bgcolor='#F8F9FA',
+                font={'color': 'black'},
+                title={'font': {'color': 'black'}}
+            )
+            fig_err.update_xaxes(tickfont={'color': 'black'}, title_font={'color': 'black'})
+            fig_err.update_yaxes(tickfont={'color': 'black'}, title_font={'color': 'black'})
+            st.plotly_chart(fig_err, use_container_width=True)
+        else:
+            st.info("No prediction data available")
+    
+    # 2. Anomaly Detection
+    with col2:
+        st.markdown('<p class="section-header">⚠️ Anomaly Detection</p>', unsafe_allow_html=True)
+        
+        if len(df_anomalies) > 0:
+            # Map of anomalies
+            df_anom_valid = df_anomalies[df_anomalies['magnitude'] > 0]
+            if len(df_anom_valid) > 0:
+                fig_anom = px.scatter_mapbox(
+                    df_anom_valid, lat='latitude', lon='longitude',
+                    color='magnitude', size='magnitude',
+                    hover_name='anomaly_reason',
+                    color_continuous_scale='Reds',
+                    size_max=15, zoom=1,
+                    mapbox_style='carto-positron',
+                    title='Detected Anomalies'
+                )
+                fig_anom.update_layout(
+                    height=400, 
+                    margin=dict(l=0, r=0, t=40, b=0),
+                    title={'font': {'color': 'black'}}
+                )
+                st.plotly_chart(fig_anom, use_container_width=True)
+            
+            # Anomaly reasons breakdown
+            reason_counts = df_anomalies['anomaly_reason'].value_counts().head(10)
+            fig_reasons = px.bar(
+                x=reason_counts.values, y=reason_counts.index,
+                orientation='h', title='Top Anomaly Reasons',
+                color_discrete_sequence=[COLORS['danger']]
+            )
+            fig_reasons.update_layout(
+                height=300,
+                paper_bgcolor='white',
+                plot_bgcolor='#F8F9FA',
+                font={'color': 'black'},
+                title={'font': {'color': 'black'}},
+                yaxis={'categoryorder': 'total ascending'}
+            )
+            fig_reasons.update_xaxes(tickfont={'color': 'black'})
+            fig_reasons.update_yaxes(tickfont={'color': 'black'})
+            st.plotly_chart(fig_reasons, use_container_width=True)
+        else:
+            st.info("No anomaly data available")
+    
+    st.markdown("---")
+    
+    # 3. Regional Risk Clustering
+    st.markdown('<p class="section-header">🗺️ Regional Risk Clustering</p>', unsafe_allow_html=True)
+    
+    if len(df_clusters) > 0:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Risk level distribution
+            risk_counts = df_clusters['risk_level'].value_counts()
+            colors_map = {'CRITICAL': COLORS['danger'], 'HIGH': COLORS['accent'], 
+                         'MODERATE': COLORS['warning'], 'LOW': COLORS['success']}
+            
+            fig_risk = px.pie(
+                values=risk_counts.values, names=risk_counts.index,
+                title='Regional Risk Distribution',
+                color=risk_counts.index,
+                color_discrete_map=colors_map,
+                hole=0.4
+            )
+            fig_risk.update_layout(
+                height=350,
+                paper_bgcolor='white',
+                font={'color': 'black'},
+                title={'font': {'color': 'black'}}
+            )
+            st.plotly_chart(fig_risk, use_container_width=True)
+        
+        with col2:
+            # Top risk regions
+            critical_regions = df_clusters[df_clusters['risk_level'].isin(['CRITICAL', 'HIGH'])].head(10)
+            if len(critical_regions) > 0:
+                fig_top = px.bar(
+                    critical_regions, x='earthquake_count', y='region',
+                    orientation='h', color='risk_level',
+                    color_discrete_map=colors_map,
+                    title='Highest Risk Regions'
+                )
+                fig_top.update_layout(
+                    height=350,
+                    paper_bgcolor='white',
+                    plot_bgcolor='#F8F9FA',
+                    font={'color': 'black'},
+                    title={'font': {'color': 'black'}},
+                    yaxis={'categoryorder': 'total ascending'}
+                )
+                fig_top.update_xaxes(tickfont={'color': 'black'})
+                fig_top.update_yaxes(tickfont={'color': 'black'})
+                st.plotly_chart(fig_top, use_container_width=True)
+        
+        # Cluster map
+        df_clusters_valid = df_clusters[(df_clusters['centroid_lat'].notna()) & (df_clusters['avg_magnitude'] > 0)]
+        if len(df_clusters_valid) > 0:
+            fig_cluster_map = px.scatter_mapbox(
+                df_clusters_valid, 
+                lat='centroid_lat', lon='centroid_lon',
+                color='risk_level', size='earthquake_count',
+                hover_name='region',
+                hover_data={'avg_magnitude': ':.2f', 'max_magnitude': ':.1f'},
+                color_discrete_map=colors_map,
+                size_max=20, zoom=1,
+                mapbox_style='carto-positron',
+                title='Regional Risk Map'
+            )
+            fig_cluster_map.update_layout(height=450, margin=dict(l=0, r=0, t=40, b=0))
+            st.plotly_chart(fig_cluster_map, use_container_width=True)
+    else:
+        st.info("No clustering data available")
+    
+    st.markdown("---")
+    
+    # 4. Seismic Forecast
+    st.markdown('<p class="section-header">📈 Seismic Activity Forecast</p>', unsafe_allow_html=True)
+    
+    if len(df_forecast) > 0:
+        # Region selector
+        regions = df_forecast['region'].unique()
+        selected_region = st.selectbox("Select Region for Forecast", options=regions)
+        
+        region_forecast = df_forecast[df_forecast['region'] == selected_region]
+        
+        if len(region_forecast) > 0:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Forecast chart
+                fig_forecast = go.Figure()
+                
+                fig_forecast.add_trace(go.Bar(
+                    x=region_forecast['forecast_month'],
+                    y=region_forecast['predicted_count'],
+                    name='Predicted Count',
+                    marker_color=COLORS['primary']
+                ))
+                
+                # Confidence interval
+                fig_forecast.add_trace(go.Scatter(
+                    x=list(region_forecast['forecast_month']) + list(region_forecast['forecast_month'])[::-1],
+                    y=list(region_forecast['confidence_upper']) + list(region_forecast['confidence_lower'])[::-1],
+                    fill='toself',
+                    fillcolor='rgba(0,102,204,0.2)',
+                    line=dict(color='rgba(255,255,255,0)'),
+                    name='95% Confidence'
+                ))
+                
+                fig_forecast.update_layout(
+                    title={'text': f'Earthquake Forecast: {selected_region}', 'font': {'color': 'black'}},
+                    height=350,
+                    paper_bgcolor='white',
+                    plot_bgcolor='#F8F9FA',
+                    font={'color': 'black'}
+                )
+                fig_forecast.update_xaxes(tickfont={'color': 'black'})
+                fig_forecast.update_yaxes(tickfont={'color': 'black'})
+                st.plotly_chart(fig_forecast, use_container_width=True)
+            
+            with col2:
+                # Forecast table
+                st.markdown("**Forecast Details**")
+                display_df = region_forecast[['forecast_month', 'predicted_count', 'predicted_avg_magnitude', 'trend']].copy()
+                display_df.columns = ['Month', 'Predicted Events', 'Avg Magnitude', 'Trend']
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+                
+                # Trend indicator
+                trend = region_forecast['trend'].iloc[0] if len(region_forecast) > 0 else 'STABLE'
+                if trend == 'INCREASING':
+                    st.error("📈 Trend: INCREASING - Elevated seismic activity expected")
+                elif trend == 'DECREASING':
+                    st.success("📉 Trend: DECREASING - Reduced seismic activity expected")
+                else:
+                    st.info("➡️ Trend: STABLE - Normal seismic activity expected")
+    else:
+        st.info("No forecast data available")
+    
+    st.markdown("---")
+    
+    # ML Pipeline trigger
+    st.markdown('<p class="section-header">🔄 Run ML Pipeline</p>', unsafe_allow_html=True)
+    if st.button("🤖 Trigger ML Pipeline", type="primary"):
+        trigger_dag('earthquake_ml_pipeline')
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -1069,11 +1424,12 @@ def main():
     st.markdown('<p class="sub-header">Real-time seismic monitoring and historical analysis</p>', unsafe_allow_html=True)
     
     # Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview",
         "📈 Historical",
         "🔍 Explorer",
         "🌍 Regions",
+        "🤖 ML Insights",
         "🚀 Pipeline"
     ])
     
@@ -1086,16 +1442,18 @@ def main():
     with tab4:
         render_region()
     with tab5:
+        render_ml_insights()
+    with tab6:
         render_pipeline()
     
     # Footer
     st.markdown("---")
     st.markdown(f"""
     <div style='text-align: center; padding: 1rem;'>
-        <small style='color: {COLORS["muted"]};'>
+        <small style='color: #B0B0B0;'>
             Data: USGS Earthquake Hazards Program | 
             Updated: {datetime.now().strftime("%Y-%m-%d %H:%M")} |
-            Built with Streamlit & Snowflake
+            Built with Streamlit, Snowflake & scikit-learn
         </small>
     </div>
     """, unsafe_allow_html=True)
