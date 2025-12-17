@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: raw
+    database: USER_DB_PLATYPUS
+    schema: RAW
+    description: "Raw earthquake data from USGS API"
+    tables:
+      - name: raw_earthquakes
+        description: "Raw earthquake events ingested from USGS real-time and historical feeds"
+        columns:
+          - name: event_id
+            description: "Unique identifier for the earthquake event"
+            tests:
+              - unique
+              - not_null
+          - name: magnitude
+            description: "Earthquake magnitude on the Richter scale"
+          - name: event_time
+            description: "Event timestamp in Unix milliseconds"
+          - name: latitude
+            description: "Latitude of earthquake epicenter"
+          - name: longitude
+            description: "Longitude of earthquake epicenter"
+          - name: depth_km
+            description: "Depth of earthquake in kilometers"

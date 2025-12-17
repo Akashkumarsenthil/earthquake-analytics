@@ -1,0 +1,30 @@
+-- back compat for old kwarg name
+  
+  begin;
+    
+        
+            
+            
+        
+    
+
+    
+
+    merge into USER_DB_PLATYPUS.ANALYTICS.fct_earthquakes as DBT_INTERNAL_DEST
+        using USER_DB_PLATYPUS.ANALYTICS.fct_earthquakes__dbt_tmp as DBT_INTERNAL_SOURCE
+        on (
+                DBT_INTERNAL_SOURCE.event_id = DBT_INTERNAL_DEST.event_id
+            )
+
+    
+    when matched then update set
+        magnitude = DBT_INTERNAL_SOURCE.magnitude,updated_timestamp = DBT_INTERNAL_SOURCE.updated_timestamp,status = DBT_INTERNAL_SOURCE.status,felt_reports = DBT_INTERNAL_SOURCE.felt_reports,community_intensity = DBT_INTERNAL_SOURCE.community_intensity,alert_level = DBT_INTERNAL_SOURCE.alert_level,dbt_updated_at = DBT_INTERNAL_SOURCE.dbt_updated_at
+    
+
+    when not matched then insert
+        ("EVENT_ID", "EVENT_DATE", "REGION", "MAGNITUDE_CATEGORY", "DEPTH_CATEGORY", "SOURCE_NETWORK", "EVENT_TYPE", "STATUS", "MAGNITUDE", "DEPTH_KM", "LATITUDE", "LONGITUDE", "SIGNIFICANCE", "STATION_COUNT", "TRAVEL_TIME_RESIDUAL", "AZIMUTHAL_GAP", "NEAREST_STATION_DISTANCE", "FELT_REPORTS", "COMMUNITY_INTENSITY", "MERCALLI_INTENSITY", "ALERT_LEVEL", "HAS_TSUNAMI_WARNING", "EVENT_TIMESTAMP", "EVENT_HOUR", "DAY_OF_WEEK", "UPDATED_TIMESTAMP", "PLACE", "TITLE", "DETAIL_URL", "INGESTED_AT", "DBT_UPDATED_AT")
+    values
+        ("EVENT_ID", "EVENT_DATE", "REGION", "MAGNITUDE_CATEGORY", "DEPTH_CATEGORY", "SOURCE_NETWORK", "EVENT_TYPE", "STATUS", "MAGNITUDE", "DEPTH_KM", "LATITUDE", "LONGITUDE", "SIGNIFICANCE", "STATION_COUNT", "TRAVEL_TIME_RESIDUAL", "AZIMUTHAL_GAP", "NEAREST_STATION_DISTANCE", "FELT_REPORTS", "COMMUNITY_INTENSITY", "MERCALLI_INTENSITY", "ALERT_LEVEL", "HAS_TSUNAMI_WARNING", "EVENT_TIMESTAMP", "EVENT_HOUR", "DAY_OF_WEEK", "UPDATED_TIMESTAMP", "PLACE", "TITLE", "DETAIL_URL", "INGESTED_AT", "DBT_UPDATED_AT")
+
+;
+    commit;
