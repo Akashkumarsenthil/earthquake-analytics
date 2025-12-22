@@ -71,7 +71,6 @@ nano .env
 
 # Export environment variables
 source .env
-# Or on Windows: set SNOWFLAKE_PASSWORD=your_password
 ```
 
 ### 3. Airflow Setup
