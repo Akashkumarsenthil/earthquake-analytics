@@ -71,6 +71,7 @@ nano .env
 
 # Export environment variables
 source .env
+# Or on Windows: set SNOWFLAKE_PASSWORD=your_password
 ```
 
 ### 3. Airflow Setup
@@ -228,6 +229,10 @@ dbt run --debug
 - Check Airflow logs in UI
 - Verify Snowflake connection in Admin → Connections
 - Ensure USGS API is accessible
+
+## Live Dashboard
+
+🚀 **View the live dashboard here**: [Earthquake Analytics Dashboard](https://earthquakedashboardpy-9awudwwqv26znqrc3rpdim.streamlit.app/)
 
 ## Data Sources
 
