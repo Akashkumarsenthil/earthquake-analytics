@@ -1,0 +1,16 @@
+# Dashboard dependencies
+streamlit>=1.28.0
+pandas>=2.0.0
+plotly>=5.18.0
+snowflake-connector-python>=3.5.0
+
+# Airflow dependencies (if not using Docker)
+apache-airflow>=2.7.0
+apache-airflow-providers-snowflake>=5.0.0
+
+# dbt dependencies
+dbt-snowflake>=1.7.0
+
+# Other utilities
+requests>=2.31.0
+python-dotenv>=1.0.0

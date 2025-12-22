@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: fct_earthquakes
+    description: "Fact table containing all earthquake events with dimensions and measures"
+    columns:
+      - name: event_id
+        description: "Primary key - unique earthquake event identifier"
+        tests:
+          - unique
+          - not_null
+      - name: magnitude
+        description: "Earthquake magnitude on Richter scale"
+        tests:
+          - not_null
+      - name: event_date
+        description: "Date of the earthquake event"
+        tests:
+          - not_null
+      - name: region
+        description: "Geographic region of the earthquake"
+      - name: latitude
+        description: "Latitude coordinate of epicenter"
+        tests:
+          - not_null
+      - name: longitude
+        description: "Longitude coordinate of epicenter"
+        tests:
+          - not_null
+
+  - name: agg_daily_summary
+    description: "Daily aggregated statistics for dashboard KPIs"
+    columns:
+      - name: summary_date
+        description: "Primary key - date of summary"
+        tests:
+          - unique
+          - not_null
+      - name: total_earthquakes
+        description: "Total number of earthquakes on this date"
+      - name: avg_magnitude
+        description: "Average magnitude for the day"
+      - name: max_magnitude
+        description: "Maximum magnitude earthquake for the day"
+
+  - name: agg_regional_risk
+    description: "Regional risk analysis with calculated risk scores"
+    columns:
+      - name: region
+        description: "Primary key - geographic region"
+        tests:
+          - unique
+          - not_null
+      - name: risk_score
+        description: "Calculated risk score (0-100)"
+      - name: risk_category
+        description: "Risk category: minimal, low, moderate, high"
+
+  - name: agg_hourly_heatmap
+    description: "Hourly pattern aggregation for temporal analysis"
+    columns:
+      - name: day_of_week
+        description: "Day of week (0=Sunday, 6=Saturday)"
+      - name: event_hour
+        description: "Hour of day (0-23)"
+      - name: earthquake_count
+        description: "Number of earthquakes in this time slot"

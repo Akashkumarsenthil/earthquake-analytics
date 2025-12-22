@@ -1,0 +1,26 @@
+earthquake_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: sfedu02-lvb17920
+      user: PLATYPUS
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: ACCOUNTADMIN
+      database: USER_DB_PLATYPUS
+      warehouse: PLATYPUS_QUERY_WH
+      schema: ANALYTICS
+      threads: 4
+      client_session_keep_alive: False
+    
+    prod:
+      type: snowflake
+      account: sfedu02-lvb17920
+      user: PLATYPUS
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: ACCOUNTADMIN
+      database: USER_DB_PLATYPUS
+      warehouse: PLATYPUS_QUERY_WH
+      schema: ANALYTICS
+      threads: 4
+      client_session_keep_alive: False
