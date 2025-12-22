@@ -234,6 +234,10 @@ dbt run --debug
 
 🚀 **View the live dashboard here**: [Earthquake Analytics Dashboard](https://earthquakedashboardpy-9awudwwqv26znqrc3rpdim.streamlit.app/)
 
+> 🌙 **Tip**: View the dashboard in **dark mode** for the best experience!
+>
+> ⚠️ **Note**: We're running this on Streamlit's free cloud tier, so the app may go to sleep after 3 days of inactivity. If the dashboard appears down, please click "Yes, get this app back up!" to restart it.
+
 ## Data Sources
 
 - **Real-time Feed**: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson
