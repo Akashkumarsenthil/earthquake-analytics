@@ -1,0 +1,40 @@
+$ python -m unittest discover -s tests -v
+test_backfill_fetches_second_page (test_regressions.Regressions.test_backfill_fetches_second_page) ... <actual ingestion function>:314: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+ok
+test_empty_load_never_connects (test_regressions.Regressions.test_empty_load_never_connects) ... WARNING:root:No records to load
+ok
+test_historical_loader_reads_correct_xcom_and_batches (test_regressions.Regressions.test_historical_loader_reads_correct_xcom_and_batches) ... ok
+test_incremental_revision_uses_each_event_not_global_max (test_regressions.Regressions.test_incremental_revision_uses_each_event_not_global_max) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.077s
+
+OK
+
+Exit: 0
+
+$ node --test tests/demo.test.mjs
+✔ invalid coordinates rejected, null magnitude retained, newest revision wins (1.12747ms)
+✔ snapshot windows anchored to generation date, numeric threshold excludes unknown (0.349427ms)
+✔ empty state and median do not fabricate observations (0.938055ms)
+✔ CSV escapes quotes and spreadsheet formulas (1.53776ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124.221295
+
+Exit: 0
+
+$ node --check demo/app.mjs
+
+Exit: 0
+
+$ python -m compileall -q dags dashboard
+
+Exit: 0
+
+No live Snowflake/Airflow integration or browser UI test was performed.

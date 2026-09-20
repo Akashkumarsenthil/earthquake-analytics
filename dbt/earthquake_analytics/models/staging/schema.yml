@@ -35,5 +35,5 @@ models:
           - not_null
       - name: event_date
         description: "Date of the earthquake"
-      - name: has_tsunami_warning
-        description: "Boolean indicating if tsunami warning was issued"
+      - name: has_tsunami_flag
+        description: "Boolean indicating if USGS tsunami flag was issued"

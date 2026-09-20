@@ -3,24 +3,24 @@ earthquake_analytics:
   outputs:
     dev:
       type: snowflake
-      account: sfedu02-lvb17920
-      user: PLATYPUS
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
       password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
-      role: ACCOUNTADMIN
-      database: USER_DB_PLATYPUS
-      warehouse: PLATYPUS_QUERY_WH
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'EARTHQUAKE_DB') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
       schema: ANALYTICS
       threads: 4
       client_session_keep_alive: False
     
     prod:
       type: snowflake
-      account: sfedu02-lvb17920
-      user: PLATYPUS
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
       password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
-      role: ACCOUNTADMIN
-      database: USER_DB_PLATYPUS
-      warehouse: PLATYPUS_QUERY_WH
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'EARTHQUAKE_DB') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
       schema: ANALYTICS
       threads: 4
       client_session_keep_alive: False

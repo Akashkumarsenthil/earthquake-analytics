@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw
-    database: USER_DB_PLATYPUS
+    database: "{{ env_var('SNOWFLAKE_DATABASE', 'EARTHQUAKE_DB') }}"
     schema: RAW
     description: "Raw earthquake data from USGS API"
     tables:
@@ -15,7 +15,7 @@ sources:
               - unique
               - not_null
           - name: magnitude
-            description: "Earthquake magnitude on the Richter scale"
+            description: "Reported earthquake magnitude (type varies by event)"
           - name: event_time
             description: "Event timestamp in Unix milliseconds"
           - name: latitude

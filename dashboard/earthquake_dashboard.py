@@ -50,11 +50,11 @@ st.markdown("""
 def get_snowflake_connection():
     """Create Snowflake connection"""
     return snowflake.connector.connect(
-        account=os.getenv('SNOWFLAKE_ACCOUNT', 'sfedu02-lvb17920'),
-        user=os.getenv('SNOWFLAKE_USER', 'PLATYPUS'),
+        account=os.environ['SNOWFLAKE_ACCOUNT'],
+        user=os.environ['SNOWFLAKE_USER'],
         password=os.getenv('SNOWFLAKE_PASSWORD'),
-        warehouse=os.getenv('SNOWFLAKE_WAREHOUSE', 'PLATYPUS_QUERY_WH'),
-        database=os.getenv('SNOWFLAKE_DATABASE', 'USER_DB_PLATYPUS'),
+        warehouse=os.environ['SNOWFLAKE_WAREHOUSE'],
+        database=os.getenv('SNOWFLAKE_DATABASE', 'EARTHQUAKE_DB'),
         schema=os.getenv('SNOWFLAKE_SCHEMA', 'ANALYTICS')
     )
 
@@ -68,7 +68,7 @@ def load_earthquakes(days=30, min_magnitude=0):
         event_id, event_timestamp, event_date, 
         magnitude, magnitude_category, depth_km, depth_category,
         latitude, longitude, region, place,
-        felt_reports, significance, has_tsunami_warning,
+        felt_reports, significance, has_tsunami_flag,
         alert_level, source_network, status
     FROM ANALYTICS.fct_earthquakes
     WHERE event_date >= CURRENT_DATE - {days}
@@ -76,6 +76,7 @@ def load_earthquakes(days=30, min_magnitude=0):
     ORDER BY event_timestamp DESC
     """
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
     return df
 
 
@@ -90,6 +91,7 @@ def load_daily_summary(days=30):
     ORDER BY summary_date DESC
     """
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
     return df
 
 
@@ -104,6 +106,7 @@ def load_regional_risk():
     LIMIT 50
     """
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
     return df
 
 
@@ -117,18 +120,20 @@ def load_hourly_heatmap():
     ORDER BY day_of_week, event_hour
     """
     df = pd.read_sql(query, conn)
+    df.columns = df.columns.str.lower()
     return df
 
 
 def create_map(df):
     """Create interactive earthquake map"""
-    # Color scale based on magnitude
+    # Magnitudes may be negative; Plotly marker areas must be nonnegative.
+    df = df.assign(marker_size=df['magnitude'].clip(lower=0) + 1)
     fig = px.scatter_mapbox(
         df,
         lat='latitude',
         lon='longitude',
         color='magnitude',
-        size='magnitude',
+        size='marker_size',
         hover_name='place',
         hover_data={
             'magnitude': ':.1f',
@@ -241,7 +246,7 @@ def create_risk_bar(df_risk):
         y='region',
         orientation='h',
         color='risk_category',
-        title='⚠️ Top 15 High-Risk Regions',
+        title='Regional activity index (experimental)',
         color_discrete_map={
             'high': '#e74c3c',
             'moderate': '#f39c12',
@@ -328,12 +333,13 @@ def main():
             st.code("""
 # Set environment variables:
 export SNOWFLAKE_PASSWORD='your_password'
-export SNOWFLAKE_ACCOUNT='sfedu02-lvb17920'
-export SNOWFLAKE_USER='PLATYPUS'
+export SNOWFLAKE_ACCOUNT='your_account'
+export SNOWFLAKE_USER='your_user'
             """)
             return
     
     # KPI Metrics Row
+    st.caption('The regional index is an unvalidated activity heuristic, not a seismic hazard forecast. Timeline uses the selected date window; regional and hourly panels use all warehouse history. Magnitude filtering applies to event-level panels.')
     st.subheader("📊 Key Metrics")
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -357,7 +363,7 @@ export SNOWFLAKE_USER='PLATYPUS'
         st.metric(
             label="Max Magnitude",
             value=f"{max_mag:.1f}",
-            delta="Richter"
+            delta=None
         )
     
     with col4:
@@ -365,7 +371,7 @@ export SNOWFLAKE_USER='PLATYPUS'
         st.metric(
             label="Avg Magnitude",
             value=f"{avg_mag:.2f}",
-            delta="Richter"
+            delta=None
         )
     
     with col5:
@@ -431,9 +437,9 @@ export SNOWFLAKE_USER='PLATYPUS'
     
     if len(df) > 0:
         display_df = df[['event_timestamp', 'place', 'magnitude', 'depth_km', 
-                         'magnitude_category', 'region', 'has_tsunami_warning']].head(20)
+                         'magnitude_category', 'region', 'has_tsunami_flag']].head(20)
         display_df.columns = ['Time', 'Location', 'Magnitude', 'Depth (km)', 
-                              'Category', 'Region', 'Tsunami Warning']
+                              'Category', 'Region', 'USGS Tsunami Flag']
         
         st.dataframe(
             display_df,

@@ -2,9 +2,7 @@
     config(
         materialized='incremental',
         unique_key='event_id',
-        schema='analytics',
-        incremental_strategy='merge',
-        merge_update_columns=['magnitude', 'updated_timestamp', 'status', 'felt_reports', 'community_intensity', 'alert_level', 'dbt_updated_at']
+        incremental_strategy='merge'
     )
 }}
 
@@ -14,10 +12,14 @@
 */
 
 WITH staged AS (
-    SELECT * FROM {{ ref('stg_earthquakes') }}
+    SELECT s.* FROM {{ ref('stg_earthquakes') }} AS s
     {% if is_incremental() %}
-    WHERE updated_timestamp > (SELECT MAX(updated_timestamp) FROM {{ this }})
-       OR event_id NOT IN (SELECT event_id FROM {{ this }})
+    WHERE NOT EXISTS (
+        SELECT 1 FROM {{ this }} AS t
+        WHERE t.event_id = s.event_id
+          AND COALESCE(t.updated_timestamp, t.event_timestamp)
+              >= COALESCE(s.updated_timestamp, s.event_timestamp)
+    )
     {% endif %}
 )
 
@@ -52,7 +54,7 @@ SELECT
     community_intensity,
     mercalli_intensity,
     alert_level,
-    has_tsunami_warning,
+    has_tsunami_flag,
     
     -- Time dimensions
     event_timestamp,
