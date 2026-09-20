@@ -5,10 +5,10 @@
 Python 3 is sufficient. From the repository root:
 
 ```sh
-python -m http.server 8000 --directory demo
+python3 -m http.server 8000 --directory demo
 ```
 
-Open http://localhost:8000. No keys, database, Node installation, or student credits are required for this static demo. Upload `demo/` to any static host. The portfolio version is mounted at `/demos/earthquake/`; the `ak.` link returns to the host root.
+Open http://localhost:8000. No keys, database, Node installation, or student credits are required for this static demo. Upload `demo/` to any static host. The portfolio links to the separately hosted demo at https://earthquake-analytics.akashs.chatgpt.site.
 
 The demo includes a Leaflet map, time and magnitude filters, location search, event inspection, filtered statistics, CSV download, and a dated USGS snapshot. A seven-day snapshot supports all displayed time windows. Snapshot filtering uses its generation timestamp, never the current date. Feed failures and delayed feeds are labeled. Unknown magnitudes are never converted to zero. The map may require an external tile connection, while the event table continues to work without tiles. Vendored Leaflet license is in `demo/vendor/LEAFLET_LICENSE`.
 
@@ -36,7 +36,7 @@ Remaining architecture limits: batches still pass through XCom (large backfills 
 ## Regression checks
 
 ```sh
-python -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v
 node --test tests/demo.test.mjs
 ```
 
