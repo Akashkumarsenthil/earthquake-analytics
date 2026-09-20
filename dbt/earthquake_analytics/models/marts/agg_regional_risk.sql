@@ -1,7 +1,6 @@
 {{
     config(
-        materialized='table',
-        schema='analytics'
+        materialized='table'
     )
 }}
 
@@ -34,7 +33,7 @@ WITH regional_stats AS (
         
         -- Impact
         SUM(COALESCE(felt_reports, 0)) AS total_felt_reports,
-        COUNT(CASE WHEN has_tsunami_warning THEN 1 END) AS tsunami_warnings,
+        COUNT(CASE WHEN has_tsunami_flag THEN 1 END) AS tsunami_flags,
         
         -- Time range
         MIN(event_date) AS first_event_date,
@@ -71,7 +70,7 @@ risk_scored AS (
             -- Recent activity boost
             earthquakes_last_30_days * 0.5 +
             -- Tsunami risk
-            tsunami_warnings * 15
+            tsunami_flags * 15
         ) AS raw_risk_score
         
     FROM regional_stats

@@ -1,3 +1,5 @@
+> **Refined demo and fixes:** see [docs/REFINEMENT.md](docs/REFINEMENT.md). Run the no-account demo with `python3 -m http.server 8000 --directory demo`, then open `http://localhost:8000`. The demo uses USGS directly; it does not run the warehouse stack.
+
 # 🌍 Earthquake Analytics Pipeline
 
 An end-to-end data analytics platform for USGS earthquake data with real-time ingestion, transformation, and interactive visualization.
@@ -52,13 +54,13 @@ earthquake_pipeline/
 
 ### 1. Snowflake Setup
 
-1. Log into Snowflake: https://sfedu02-lvb17920.snowflakecomputing.com
+1. Log into Snowflake: https://your_account.snowflakecomputing.com
 2. Run the SQL script in `setup/snowflake_setup.sql` to create schemas and tables
 3. Note your credentials:
-   - Account: `sfedu02-lvb17920`
-   - User: `PLATYPUS`
-   - Database: `USER_DB_PLATYPUS`
-   - Warehouse: `PLATYPUS_QUERY_WH`
+   - Account: `your_account`
+   - User: `YOUR_USER`
+   - Database: `EARTHQUAKE_DB`
+   - Warehouse: `EARTHQUAKE_WH`
 
 ### 2. Environment Setup
 
@@ -87,11 +89,11 @@ Set up Airflow Snowflake connection:
 2. Add new connection:
    - Connection Id: `snowflake_conn`
    - Connection Type: `Snowflake`
-   - Host: `sfedu02-lvb17920`
+   - Host: `your_account`
    - Schema: `RAW`
-   - Login: `PLATYPUS`
+   - Login: `YOUR_USER`
    - Password: `[your password]`
-   - Extra: `{"account": "sfedu02-lvb17920", "warehouse": "PLATYPUS_QUERY_WH", "database": "USER_DB_PLATYPUS", "role": "ACCOUNTADMIN"}`
+   - Extra: `{"account": "your_account", "warehouse": "EARTHQUAKE_WH", "database": "EARTHQUAKE_DB", "role": "ACCOUNTADMIN"}`
 
 ### 4. dbt Setup
 
@@ -213,7 +215,7 @@ dbt docs serve
 **Snowflake connection issues:**
 ```bash
 # Test connection
-python -c "import snowflake.connector; c = snowflake.connector.connect(account='sfedu02-lvb17920', user='PLATYPUS', password='$SNOWFLAKE_PASSWORD'); print('Connected!')"
+python -c "import snowflake.connector; c = snowflake.connector.connect(account='your_account', user='YOUR_USER', password='$SNOWFLAKE_PASSWORD'); print('Connected!')"
 ```
 
 **dbt model failures:**

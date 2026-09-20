@@ -1,7 +1,6 @@
 {{
     config(
-        materialized='view',
-        schema='analytics'
+        materialized='view'
     )
 }}
 
@@ -73,7 +72,7 @@ cleaned AS (
         mmi AS mercalli_intensity,
         alert_level,
         tsunami_flag,
-        CASE WHEN tsunami_flag = 1 THEN TRUE ELSE FALSE END AS has_tsunami_warning,
+        CASE WHEN tsunami_flag = 1 THEN TRUE ELSE FALSE END AS has_tsunami_flag,
         
         -- Metadata
         network AS source_network,

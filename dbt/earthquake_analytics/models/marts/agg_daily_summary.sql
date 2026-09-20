@@ -2,7 +2,6 @@
     config(
         materialized='incremental',
         unique_key='summary_date',
-        schema='analytics',
         incremental_strategy='merge'
     )
 }}
@@ -20,7 +19,7 @@ WITH daily_stats AS (
         COUNT(*) AS total_earthquakes,
         COUNT(CASE WHEN magnitude >= 4.0 THEN 1 END) AS significant_earthquakes,
         COUNT(CASE WHEN magnitude >= 5.0 THEN 1 END) AS strong_earthquakes,
-        COUNT(CASE WHEN has_tsunami_warning THEN 1 END) AS tsunami_warnings,
+        COUNT(CASE WHEN has_tsunami_flag THEN 1 END) AS tsunami_flags,
         
         -- Magnitude stats
         AVG(magnitude) AS avg_magnitude,

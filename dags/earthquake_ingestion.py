@@ -11,10 +11,14 @@ from datetime import datetime, timedelta
 import requests
 import json
 import logging
+import os
+import re
 
 # Configuration
 SNOWFLAKE_CONN_ID = 'snowflake_conn'  # Set this up in Airflow connections
-DATABASE = 'USER_DB_PLATYPUS'
+DATABASE = os.environ.get('SNOWFLAKE_DATABASE', 'EARTHQUAKE_DB')
+if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', DATABASE):
+    raise ValueError('SNOWFLAKE_DATABASE must be a simple SQL identifier')
 SCHEMA_RAW = 'RAW'
 SCHEMA_ANALYTICS = 'ANALYTICS'
 
@@ -49,7 +53,10 @@ def fetch_realtime_earthquakes(**context):
     for feature in features:
         props = feature.get('properties', {})
         geom = feature.get('geometry', {})
-        coords = geom.get('coordinates', [None, None, None])
+        coords = geom.get('coordinates') or [None, None, None]
+        if not feature.get('id'):
+            logging.warning('Skipping event without ID')
+            continue
         
         record = {
             'event_id': feature.get('id'),
@@ -89,9 +96,9 @@ def fetch_realtime_earthquakes(**context):
     return len(records)
 
 
-def load_to_snowflake(**context):
+def load_to_snowflake(source_task_id='fetch_earthquakes', **context):
     """Load earthquake records to Snowflake RAW schema using MERGE"""
-    records = context['ti'].xcom_pull(key='earthquake_records', task_ids='fetch_earthquakes')
+    records = context['ti'].xcom_pull(key='earthquake_records', task_ids=source_task_id)
     
     if not records:
         logging.warning("No records to load")
@@ -167,15 +174,19 @@ def load_to_snowflake(**context):
         )
         """
         
-        for record in records:
-            cursor.execute(insert_sql, record)
+        cursor.executemany(insert_sql, records)
         
         # MERGE to handle duplicates (upsert)
         merge_sql = """
         MERGE INTO raw_earthquakes AS target
-        USING raw_earthquakes_staging AS source
+        USING (
+            SELECT * FROM raw_earthquakes_staging
+            QUALIFY ROW_NUMBER() OVER (
+                PARTITION BY event_id ORDER BY updated_time DESC NULLS LAST
+            ) = 1
+        ) AS source
         ON target.event_id = source.event_id
-        WHEN MATCHED AND source.updated_time > target.updated_time THEN UPDATE SET
+        WHEN MATCHED AND (source.updated_time > target.updated_time OR (target.updated_time IS NULL AND source.updated_time IS NOT NULL)) THEN UPDATE SET
             magnitude = source.magnitude,
             mag_type = source.mag_type,
             place = source.place,
@@ -253,7 +264,14 @@ def fetch_historical_earthquakes(**context):
     
     data = response.json()
     features = data.get('features', [])
-    
+    # The API caps each response at 20,000 events. Continue until exhausted.
+    while len(data.get('features', [])) == params['limit']:
+        params['offset'] = len(features) + 1  # USGS offsets are one-based.
+        response = requests.get(USGS_HISTORICAL_URL, params=params, timeout=60)
+        response.raise_for_status()
+        data = response.json()
+        features.extend(data.get('features', []))
+
     logging.info(f"Fetched {len(features)} historical earthquake events")
     
     # Same transformation as realtime
@@ -261,7 +279,10 @@ def fetch_historical_earthquakes(**context):
     for feature in features:
         props = feature.get('properties', {})
         geom = feature.get('geometry', {})
-        coords = geom.get('coordinates', [None, None, None])
+        coords = geom.get('coordinates') or [None, None, None]
+        if not feature.get('id'):
+            logging.warning('Skipping event without ID')
+            continue
         
         record = {
             'event_id': feature.get('id'),
@@ -358,6 +379,7 @@ with DAG(
     load_historical_task = PythonOperator(
         task_id='load_to_snowflake',
         python_callable=load_to_snowflake,
+        op_kwargs={'source_task_id': 'fetch_historical_earthquakes'},
         provide_context=True
     )
     
