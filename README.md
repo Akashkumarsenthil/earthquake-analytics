@@ -1,4 +1,4 @@
-> **Refined demo and fixes:** see [docs/REFINEMENT.md](docs/REFINEMENT.md). Run the no-account demo with `python -m http.server 8000 --directory demo`, then open `http://localhost:8000`. The demo uses USGS directly; it does not run the warehouse stack.
+> **Refined demo and fixes:** see [docs/REFINEMENT.md](docs/REFINEMENT.md). Run the no-account demo with `python3 -m http.server 8000 --directory demo`, then open `http://localhost:8000`. The demo uses USGS directly; it does not run the warehouse stack.
 
 # 🌍 Earthquake Analytics Pipeline
 
